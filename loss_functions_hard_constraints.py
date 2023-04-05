@@ -16,7 +16,7 @@ def initialize_hji_air3D_exact_hard_cons(dataset, minWith):
     alpha_angle = dataset.alpha_angle
 
     # The derivation of the loss function is as follows:
-    # V(x,t) = l(x) + NN(x,t)
+    # V(x,t) = l(x) + t * NN(x,t)
     # For 2D case, Hamiltonian = p1(−ve + vpcosx3) + p2(vpsinx3) + w||p1x2 − p2x1 − p3|| + wp3, where p1, p2 and p3 are derivatives of V wrt x, y and theta respectively
     # p1 = lx_grad(x) + t*d(NN)/dx
     # p2 = lx_grad(y) + t*d(NN)/dy
@@ -67,7 +67,7 @@ def initialize_hji_air3D_exact_hard_cons(dataset, minWith):
             ham = torch.clamp(ham, max=0.0)
 
         else:
-            diff_constraint_hom = time_vec * dudt + y[..., 0] + ham[..., 0]
+            diff_constraint_hom = time_vec * dudt + y[..., 0] - ham[..., 0]
             min_value = time_vec * y[..., 0]
             if minWith == 'target':
                 diff_constraint_hom = torch.max(diff_constraint_hom[:, :, None], min_value[:, :, None])

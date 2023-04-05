@@ -69,7 +69,7 @@ def initialize_hji_air3D_exact_soft(dataset, minWith):
         if torch.all(dirichlet_mask):
             diff_constraint_hom = torch.Tensor([0])
         else:
-            diff_constraint_hom = dudt + ham
+            diff_constraint_hom = dudt - ham
             if minWith == 'target':
                 diff_constraint_hom = torch.max(diff_constraint_hom[:, :, None], y)
 
