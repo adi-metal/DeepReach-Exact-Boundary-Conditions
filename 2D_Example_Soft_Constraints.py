@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-sys.path.append(os.path.dirname('/content/drive/MyDrive/Colab_Notebooks/deepreach-2D-case'))
+#sys.path.append('../.')
 
 import dataio, utils, training, loss_functions_soft_constraints, modules
 
@@ -17,11 +17,14 @@ import math
 from torch.utils.data import DataLoader
 import configargparse
 
+
 p = configargparse.ArgumentParser()
 p.add('-c', '--config_filepath', required=False, is_config_file=True, help='Path to config file.')
 
-p.add_argument('--logging_root', type=str, default='/content/drive/MyDrive/Colab_Notebooks/deepreach-2D_case', help='root for logging')
-p.add_argument('--experiment_name', type=str, required=True, default='/content/drive/MyDrive/Colab_Notebooks/deepreach-2D_case/summaries',
+p.add_argument('--logging_root', type=str, default='./logs',
+               help='root for logging')
+p.add_argument('--experiment_name', type=str, required=True,
+               default='./summaries',
                help='Name of subdirectory in logging_root where summaries and checkpoints will be saved.')
 
 # General training options
@@ -102,7 +105,7 @@ def val_fn(model, ckpt_dir, epoch):
     # Get the meshgrid in the (x, y) coordinate
     sidelen = 200
     mgrid_coords = dataio.get_mgrid(sidelen)
-    signed_distance = torch.norm(mgrid_coords, dim=1, keepdim=True) * torch.norm(mgrid_coords, dim=1, keepdim=True) - opt.collisionR ** 2
+    signed_distance = torch.norm(mgrid_coords, dim=1, keepdim=True) - opt.collisionR 
     signed_distance = signed_distance.reshape(sidelen, sidelen)
     signed_distance = signed_distance.detach().cpu().numpy()
 

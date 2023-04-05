@@ -112,14 +112,15 @@ def val_fn(model, ckpt_dir, epoch):
     # Get the meshgrid in the (x, y) coordinate
     sidelen = 200
     mgrid_coords = dataio.get_mgrid(sidelen)
-    signed_distance = torch.norm(mgrid_coords, dim=1, keepdim=True) * torch.norm(mgrid_coords, dim=1, keepdim=True) - opt.collisionR ** 2
+    signed_distance = torch.norm(mgrid_coords, dim=1, keepdim=True) - opt.collisionR
     signed_distance = signed_distance.reshape(sidelen, sidelen)
     signed_distance = signed_distance.detach().cpu().numpy()
+    eps = 0.0
     #print(mgrid_coords.shape)
 
 
     # Start plotting the results
-    count = 0
+    #count = 0
     for i in range(num_times):
         time_coords = torch.ones(mgrid_coords.shape[0], 1) * times[i]
 
@@ -127,7 +128,7 @@ def val_fn(model, ckpt_dir, epoch):
             theta_coords = torch.ones(mgrid_coords.shape[0], 1) * thetas[j]
             theta_coords = theta_coords / (opt.angle_alpha * math.pi)
             coords = torch.cat((time_coords, mgrid_coords, theta_coords), dim=1)
-            print(coords.shape)
+            #print(coords.shape)
             model_in = {'coords': coords.to('cuda')}
             model_out = model(model_in)['model_out']
 
@@ -135,11 +136,11 @@ def val_fn(model, ckpt_dir, epoch):
             model_out = model_out.detach().cpu().numpy()
             #print(model_out.shape)
             model_out = model_out.reshape((sidelen, sidelen))
-            count = count + 1
+            #count = count + 1
             #print(model_out)
             #print(count)
             #print(model_out.shape)
-            model_out = (model_out * times[i]) + signed_distance
+            model_out = (model_out * (times[i]+eps)) + signed_distance
 
             # Unnormalize the value function
             norm_to = 0.02

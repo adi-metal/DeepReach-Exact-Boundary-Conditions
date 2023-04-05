@@ -3,6 +3,7 @@ import glob
 import math
 import os
 
+import diff_operators
 import matplotlib.colors as colors
 import numpy as np
 import scipy.io as spio
@@ -205,15 +206,20 @@ class ReachabilityAir3DSource(Dataset):
             # make sure we always have training samples at the initial time
             coords[-self.N_src_samples:, 0] = start_time
 
+        # create a clone of the coords function for computing the gradients of the signed distance function
+        coords_var = torch.tensor(coords.clone(), requires_grad=True)
+
         # set up the initial value function
-        boundary_values = torch.norm(coords[:, 1:3], dim=1, keepdim=True) - self.collisionR
+        boundary_values = torch.norm(coords_var[:, 1:3], dim=1, keepdim=True) - self.collisionR
 
         # normalize the value function
         norm_to = 0.02
         mean = 0.25
         var = 0.5
-
         boundary_values = (boundary_values - mean)*norm_to/var
+        
+        # Compute the gradients of the signed distance function
+        lx_grads = diff_operators.gradient(boundary_values, coords_var)[..., 1:3]
         
         if self.pretrain:
             dirichlet_mask = torch.ones(coords.shape[0], 1) > 0
@@ -229,7 +235,7 @@ class ReachabilityAir3DSource(Dataset):
         if self.pretrain and self.pretrain_counter == self.pretrain_iters:
             self.pretrain = False
 
-        return {'coords': coords}, {'source_boundary_values': boundary_values, 'dirichlet_mask': dirichlet_mask}
+        return {'coords': coords}, {'source_boundary_values': boundary_values, 'dirichlet_mask': dirichlet_mask, 'lx_grads': lx_grads}
 
 
 class Reachability2DSource(Dataset):
@@ -285,15 +291,20 @@ class Reachability2DSource(Dataset):
             # make sure we always have training samples at the initial time
             coords[-self.N_src_samples:, 0] = start_time
 
+        # create a clone of the coords function for computing the gradients of the signed distance function
+        coords_var = torch.tensor(coords.clone(), requires_grad=True)
+
         # set up the initial value function
-        boundary_values = torch.norm(coords[:, 1:], dim=1, keepdim=True) - self.collisionR
+        boundary_values = torch.norm(coords_var[:, 1:], dim=1, keepdim=True) - self.collisionR
 
         # normalize the value function
         norm_to = 0.02
         mean = 0.25
         var = 0.5
-
-        boundary_values = (boundary_values - mean) * norm_to / var
+        boundary_values = (boundary_values - mean)*norm_to/var
+        
+        # Compute the gradients of the signed distance function
+        lx_grads = diff_operators.gradient(boundary_values, coords_var)[..., 1:]
 
         if self.pretrain:
             dirichlet_mask = torch.ones(coords.shape[0], 1) > 0
@@ -309,5 +320,5 @@ class Reachability2DSource(Dataset):
         if self.pretrain and self.pretrain_counter == self.pretrain_iters:
             self.pretrain = False
 
-        return {'coords': coords}, {'source_boundary_values': boundary_values, 'dirichlet_mask': dirichlet_mask}
+        return {'coords': coords}, {'source_boundary_values': boundary_values, 'dirichlet_mask': dirichlet_mask, 'lx_grads': lx_grads}
 

@@ -18,8 +18,8 @@ def initialize_hji_air3D_exact_soft(dataset, minWith):
     # The derivation of the loss function is as follows:
     # V(x,t) = l(x) + NN(x,t)
     # For 2D case, Hamiltonian = p1(−ve + vpcosx3) + p2(vpsinx3) + w||p1x2 − p2x1 − p3|| + wp3, where p1 and p2 are derivatives of V wrt x and y respectively
-    # p1 = 2x + d(NN)/dx
-    # p2 = 2y + d(NN)/dy
+    # p1 = lx_grad(x) + d(NN)/dx
+    # p2 = lx_grad(y) + d(NN)/dy
     # p3 = d(NN)/d(theta)
     # PDE Loss = dV/dt + ham which is equal to:
     # PDE Loss = d(NN)/dt + ham (we add the hamiltonian because we are computing the goal set)
@@ -31,11 +31,16 @@ def initialize_hji_air3D_exact_soft(dataset, minWith):
         x = model_output['model_in']  # (meta_batch_size, num_points, 4)
         y = model_output['model_out']  # (meta_batch_size, num_points, 1)
         dirichlet_mask = gt['dirichlet_mask']
+        lx_grads = gt['lx_grads']
         batch_size = x.shape[1]
+        #print(lx_grads.shape)
+        #print(lx_grads[..., 0])
+        #print(lx_grads[..., 1])
 
         du, status = diff_operators.jacobian(y, x)
         dudt = du[..., 0, 0]
         dudx = du[..., 0, 1:]
+        #print(dudx.shape)
 
         x_theta = x[..., 3] * 1.0
 
@@ -48,8 +53,8 @@ def initialize_hji_air3D_exact_soft(dataset, minWith):
         # \dot x    = -v_a + v_b \cos \psi + a y
         # \dot y    = v_b \sin \psi - a x
         # \dot \psi = b - a
-        der_x = 2 * x[..., 1] + dudx[..., 0]
-        der_y = 2 * x[..., 2] + dudx[..., 1]
+        der_x = lx_grads[..., 0] + dudx[..., 0]
+        der_y = lx_grads[..., 1] + dudx[..., 1]
         der_theta = dudx[..., 2]
 
         # Compute the hamiltonian for the ego vehicle
@@ -85,8 +90,8 @@ def initialize_hji_2D_example_exact_soft(dataset, minWith):
     # The derivation of the loss function is as follows:
     # V(x,t) = l(x) + NN(x,t)
     # For 2D case, Hamiltonian = sqrt(p1**2 + p2**2) where p1 and p2 are derivatives of V wrt x and y respectively
-    # p1 = 2x + d(NN)/dx
-    # p2 = 2y + d(NN)/dy
+    # p1 = lx_grad(x) + d(NN)/dx
+    # p2 = lx_grad(y) + d(NN)/dy
     # PDE Loss = dV/dt + ham which is equal to:
     # PDE Loss = d(NN)/dt + ham (we add the hamiltonian because we are computing the goal set)
     # HJI VI: min(PDE Loss, V(x,t) - l(x)) which is equal to:
@@ -97,14 +102,18 @@ def initialize_hji_2D_example_exact_soft(dataset, minWith):
         x = model_output['model_in']  # (meta_batch_size, num_points, 3)
         y = model_output['model_out']  # (meta_batch_size, num_points, 1)
         dirichlet_mask = gt['dirichlet_mask']
+        lx_grads = gt['lx_grads']
         batch_size = x.shape[1]
 
         du, status = diff_operators.jacobian(y, x)
         dudt = du[..., 0, 0]
         dudx = du[..., 0, 1:]
 
-        der_x_square = (dudx[..., 0] + 2 * x[..., 1]) * (dudx[..., 0] + 2 * x[..., 1])
-        der_y_square = (dudx[..., 1] + 2 * x[..., 2]) * (dudx[..., 1] + 2 * x[..., 2])
+        der_x = lx_grads[..., 0] + dudx[..., 0]
+        der_y = lx_grads[..., 1] + dudx[..., 1]
+
+        der_x_square = (der_x) * (der_x)
+        der_y_square = (der_y) * (der_y)
         value_der = torch.sqrt(der_x_square + der_y_square)
 
         ham = value_der * velocity

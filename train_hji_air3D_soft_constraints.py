@@ -112,7 +112,7 @@ def val_fn(model, ckpt_dir, epoch):
     # Get the meshgrid in the (x, y) coordinate
     sidelen = 200
     mgrid_coords = dataio.get_mgrid(sidelen)
-    signed_distance = torch.norm(mgrid_coords, dim=1, keepdim=True) * torch.norm(mgrid_coords, dim=1, keepdim=True) - opt.collisionR ** 2
+    signed_distance = torch.norm(mgrid_coords, dim=1, keepdim=True) - opt.collisionR
     signed_distance = signed_distance.reshape(sidelen, sidelen)
     signed_distance = signed_distance.detach().cpu().numpy()
 
