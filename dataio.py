@@ -213,10 +213,10 @@ class ReachabilityAir3DSource(Dataset):
         boundary_values = torch.norm(coords_var[:, 1:3], dim=1, keepdim=True) - self.collisionR
 
         # normalize the value function
-        norm_to = 0.02
-        mean = 0.25
-        var = 0.5
-        boundary_values = (boundary_values - mean)*norm_to/var
+        #norm_to = 0.02
+        #mean = 0.25
+        #var = 0.5
+        #boundary_values = (boundary_values - mean)*norm_to/var
         
         # Compute the gradients of the signed distance function
         lx_grads = diff_operators.gradient(boundary_values, coords_var)[..., 1:3]
@@ -298,10 +298,10 @@ class Reachability2DSource(Dataset):
         boundary_values = torch.norm(coords_var[:, 1:], dim=1, keepdim=True) - self.collisionR
 
         # normalize the value function
-        norm_to = 0.02
-        mean = 0.25
-        var = 0.5
-        boundary_values = (boundary_values - mean)*norm_to/var
+        # norm_to = 0.02
+        # mean = 0.25
+        # var = 0.5
+        # boundary_values = (boundary_values - mean)*norm_to/var
         
         # Compute the gradients of the signed distance function
         lx_grads = diff_operators.gradient(boundary_values, coords_var)[..., 1:]

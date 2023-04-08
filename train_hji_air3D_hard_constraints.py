@@ -47,7 +47,7 @@ p.add_argument('--num_hl', type=int, default=3, required=False, help='The number
 p.add_argument('--num_nl', type=int, default=512, required=False, help='Number of neurons per hidden layer.')
 p.add_argument('--pretrain_iters', type=int, default=2000, required=False, help='Number of pretrain iterations')
 p.add_argument('--counter_start', type=int, default=-1, required=False,
-               help='Defines the initial time for the curriculul training')
+               help='Defines the initial time for the curriculum training')
 p.add_argument('--counter_end', type=int, default=-1, required=False,
                help='Defines the linear step for curriculum training starting from the initial time')
 p.add_argument('--num_src_samples', type=int, default=1000, required=False,
@@ -56,7 +56,7 @@ p.add_argument('--num_src_samples', type=int, default=1000, required=False,
 p.add_argument('--velocity', type=float, default=0.6, required=False, help='Speed of the dubins car')
 p.add_argument('--omega_max', type=float, default=1.1, required=False, help='Turn rate of the car')
 p.add_argument('--angle_alpha', type=float, default=1.0, required=False, help='Angle alpha coefficient.')
-p.add_argument('--collisionR', type=float, default=0.25, required=False, help='Collision radisu between vehicles')
+p.add_argument('--collisionR', type=float, default=0.25, required=False, help='Collision radius between vehicles')
 p.add_argument('--minWith', type=str, default='none', required=False, choices=['none', 'zero', 'target'],
                help='BRS vs BRT computation')
 
@@ -136,17 +136,14 @@ def val_fn(model, ckpt_dir, epoch):
             model_out = model_out.detach().cpu().numpy()
             #print(model_out.shape)
             model_out = model_out.reshape((sidelen, sidelen))
-            #count = count + 1
-            #print(model_out)
-            #print(count)
-            #print(model_out.shape)
-            model_out = (model_out * (times[i]+eps)) + signed_distance
 
             # Unnormalize the value function
-            norm_to = 0.02
-            mean = 0.25
-            var = 0.5
-            model_out = (model_out * var / norm_to) + mean
+            #norm_to = 0.02
+            #mean = 0.25
+            #var = 0.5
+            #model_out = (model_out * var / norm_to) + mean
+            model_out = (model_out * (times[i]+eps)) + signed_distance
+
 
             # Plot the zero level sets
             model_out = (model_out <= 0.001) * 1.

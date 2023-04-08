@@ -131,13 +131,14 @@ def val_fn(model, ckpt_dir, epoch):
             # Detatch model ouput and reshape
             model_out = model_out.detach().cpu().numpy()
             model_out = model_out.reshape((sidelen, sidelen))
-            model_out = model_out + signed_distance
 
             # Unnormalize the value function
-            norm_to = 0.02
-            mean = 0.25
-            var = 0.5
-            model_out = (model_out * var / norm_to) + mean
+            #norm_to = 0.02
+            #mean = 0.25
+            #var = 0.5
+            #model_out = (model_out * var / norm_to) + mean
+            model_out = model_out + signed_distance
+
 
             # Plot the zero level sets
             model_out = (model_out <= 0.001) * 1.

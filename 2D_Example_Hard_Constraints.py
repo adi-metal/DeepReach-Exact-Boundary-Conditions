@@ -123,10 +123,10 @@ def val_fn(model, ckpt_dir, epoch):
         model_out = (model_out * (times[i] + eps)) + signed_distance
 
         # Unnormalize the value function
-        norm_to = 0.02
-        mean = 0.25
-        var = 0.5
-        model_out = (model_out * var / norm_to) + mean
+        #norm_to = 0.02
+        #mean = 0.25
+        #var = 0.5
+        #model_out = (model_out * var / norm_to) + mean
 
         # Plot the zero level sets
         model_out = (model_out <= 0.001) * 1.
